@@ -88,7 +88,6 @@ async function createTable() {
 // Run the function to create the table
 createTable();
 
-
 // Function to insert data into MySQL
 async function insertDataIntoMySQL(data) {
   const connection = await mysql.createConnection(dbConfig);
@@ -133,10 +132,8 @@ async function insertDataIntoMySQL(data) {
         com_url_photo1,
         com_copyright1,
       } = result;
-
       // Format date 
       const formattedDate = arbres_dateplantation ? new Date(arbres_dateplantation).toISOString().slice(0, 19).replace('T', ' ') : null;
-
       await connection.execute(
         'INSERT INTO test_data (arbres_idbase, geom_lon, geom_lat, arbres_domanialite, arbres_arrondissement, arbres_complementadresse, arbres_numero, arbres_adresse, arbres_circonferenceencm, arbres_hauteurenm, arbres_stadedeveloppement, arbres_pepiniere, arbres_genre, arbres_espece, arbres_varieteoucultivar, arbres_dateplantation, arbres_libellefrancais, com_idbase, com_idarbre,com_site, com_adresse, com_complement_adresse, com_arrondissement, com_domanialite, com_nom_usuel, com_nom_latin, com_autorite_taxo, com_annee_plantation, com_qualification_rem, com_resume, com_descriptif, com_delib_num, com_delib_date, com_label_arbres, com_url_pdf, com_url_photo1, com_copyright1) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)',
         [arbres_idbase, lon, lat, arbres_domanialite, arbres_arrondissement, arbres_complementadresse, arbres_numero, arbres_adresse, arbres_circonferenceencm, arbres_hauteurenm, arbres_stadedeveloppement, arbres_pepiniere, arbres_genre, arbres_espece, arbres_varieteoucultivar, formattedDate, arbres_libellefrancais, com_idbase, com_idarbre, com_site, com_adresse, com_complement_adresse, com_arrondissement, com_domanialite, com_nom_usuel, com_nom_latin, com_autorite_taxo, com_annee_plantation, com_qualification_rem, com_resume, com_descriptif, com_delib_num, com_delib_date, com_label_arbres, com_url_pdf, com_url_photo1, com_copyright1
@@ -150,9 +147,6 @@ async function insertDataIntoMySQL(data) {
     await connection.end();
   }
 }
-
-
-
 // Main function 
 async function main() {
   try {
@@ -165,18 +159,8 @@ async function main() {
 }
 
 
-// Define an API endpoint to fetch data
-app.get('/api/data', async (req, res) => {
-  try {
-    const apiData = await fetchDataFromAPI();
-    await insertDataIntoMySQL(apiData);
-    res.json(apiData);
-  } catch (error) {
-    res.status(500).json({ error: error.message });
-  }
-});
-
-// Define an API endpoint to get chart data
+// ****algorithms
+// Define an API endpoint to get chart data: trees-by-genre
 app.get('/api/trees-by-genre', async (req, res) => {
   try {
     const connection = await mysql.createConnection(dbConfig);
@@ -193,6 +177,7 @@ app.get('/api/trees-by-genre', async (req, res) => {
   }
 });
 
+// Define an API endpoint to get chart data: trees-by-arrondissement
 app.get('/api/trees-by-arrondissement', async (req, res) => {
   try {
     const connection = await mysql.createConnection(dbConfig);
@@ -208,7 +193,7 @@ app.get('/api/trees-by-arrondissement', async (req, res) => {
   }
 });
 
-
+// Define an API endpoint to get chart data: average-tree-height-by-district
 app.get('/api/average-tree-height-by-district', async (req, res) => {
   try {
     const connection = await mysql.createConnection(dbConfig);
@@ -235,7 +220,7 @@ app.get('/api/average-tree-height-by-district', async (req, res) => {
 });
 
 
-
+// Define an API endpoint to get chart data: top-tree-species
 app.get('/api/top-tree-species', async (req, res) => {
   try {
     const connection = await mysql.createConnection(dbConfig);
@@ -250,12 +235,10 @@ app.get('/api/top-tree-species', async (req, res) => {
    
     `);
     await connection.end();
-
     const data = {};
     rows.forEach(row => {
       data[row.treeSpecies] = row.treeCount;
     });
-
     res.json({ data });
   } catch (error) {
     res.status(500).json({ error: error.message });
@@ -264,14 +247,11 @@ app.get('/api/top-tree-species', async (req, res) => {
 
 
 
-// Define a default route for the root URL
+// Define a default route for the root url
 app.get('/', (req, res) => {
   res.sendFile(__dirname + '/chart.html');
 });
-
-// Run the main function
-main();
-
+//Start the server
 app.listen(port, () => {
   console.log(`Server is running at http://localhost:${port}`);
 });
