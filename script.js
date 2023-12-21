@@ -245,7 +245,7 @@ app.get('/api/top-tree-species', async (req, res) => {
   }
 });
 
-
+main();
 
 // Define a default route for the root url
 app.get('/', (req, res) => {

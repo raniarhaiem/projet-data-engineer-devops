@@ -10,6 +10,9 @@ RUN npm install axios mysql2 express chart.js
 # Copy the rest of the application files to the working directory
 COPY . .
 
+# Copy the wait-for script
+COPY wait-for-it.sh /usr/src/app/wait-for-it.sh
+
 # Command to run your application
 CMD ["node", "script.js"]
 
