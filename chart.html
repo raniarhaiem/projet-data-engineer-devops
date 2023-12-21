@@ -1,0 +1,220 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <title>Multi-Charts</title>
+</head>
+
+<body>
+    <div style="display: flex; flex-wrap: wrap; justify-content: space-around;">
+        <!-- Chart 1: Tree Genre -->
+        <div style="width: 45%; margin: 10px;">
+            <canvas id="treeChart" width="200" height="200"></canvas>
+        </div>
+
+        <!-- Chart 2: Trees by Arrondissement -->
+        <div style="width: 45%; margin: 10px;">
+            <canvas id="arrondissementChart" width="200" height="200"></canvas>
+        </div>
+
+        <!-- Chart 3: tree by height -->
+        <div style="width: 45%; margin: 10px;">
+            <canvas id="heightbydistrict" width="200" height="200"></canvas>
+        </div>
+
+        <!-- Chart 4: tree by species -->
+        <div style="width: 45%; margin: 10px;">
+            <canvas id="topSpeciesChart" width="200" height="200"></canvas>
+        </div>
+    </div>
+
+    <script>
+        // Fetch data for tree genre
+        fetch('/api/trees-by-genre')
+            .then(response => response.json())
+            .then(data => {
+                const ctx = document.getElementById('treeChart').getContext('2d');
+
+                // Get the number of species
+                const numberOfSpecies = data.labels.length;
+
+                // Generate  colors for each species
+                const uniqueColors = [
+                    'rgba(255, 99, 132, 0.8)',
+                    'rgba(54, 162, 235, 0.8)',
+                    'rgba(255, 205, 86, 0.8)',
+                ].slice(0, numberOfSpecies);
+
+                new Chart(ctx, {
+                    type: 'doughnut',
+                    data: {
+                        labels: data.labels,
+                        datasets: [{
+                            data: data.data,
+                            backgroundColor: uniqueColors,
+                            hoverOffset: 4,
+                        }]
+                    },
+                    options: {
+                        plugins: {
+                            legend: {
+                                position: 'bottom',
+                            },
+                            title: {
+                                display: true,
+                                text: 'Trees by genre Chart',
+                                font: {
+                                    size: 16
+                                }
+                            },
+                            tooltip: {
+                                callbacks: {
+                                    label: (context) => {
+                                        const label = data.labels[context.dataIndex];
+                                        const value = data.data[context.dataIndex];
+                                        return `${label}: ${value} trees`;
+                                    },
+                                },
+                            },
+                        },
+                    },
+                });
+            });
+
+        // Fetch data for trees by arrondissement
+        fetch('/api/trees-by-arrondissement')
+            .then(response => response.json())
+            .then(data => {
+                const ctx = document.getElementById('arrondissementChart').getContext('2d');
+                new Chart(ctx, {
+                    type: 'bar',
+                    data: {
+                        labels: data.arrondissements,
+                        datasets: [{
+                            label: 'Number of Trees',
+                            data: data.treeCounts,
+                            backgroundColor: 'rgba(75, 192, 192, 0.2)',
+                            borderColor: 'rgba(75, 192, 192, 1)',
+                            borderWidth: 1
+                        }]
+                    },
+                    options: {
+                        plugins: {
+                            title: {
+                                display: true,
+                                text: 'Trees by Arrondissement',
+                                font: {
+                                    size: 16
+                                }
+                            },
+                        },
+                        scales: {
+                            y: {
+                                beginAtZero: true
+                            }
+                        }
+                    }
+                });
+            });
+
+        // Fetch data for average tree height by district
+        fetch('/api/average-tree-height-by-district')
+            .then(response => response.json())
+            .then(data => {
+                const ctx = document.getElementById('heightbydistrict').getContext('2d');
+                new Chart(ctx, {
+                    type: 'bar',
+                    data: {
+                        labels: data.data.map(item => item.treeDistrict),
+                        datasets: [{
+                            label: 'Average Tree Height',
+                            data: data.data.map(item => item.averageTreeHeight),
+                            backgroundColor: 'rgba(54, 162, 235, 0.8)',
+                            borderWidth: 1
+                        }]
+                    },
+                    options: {
+                        plugins: {
+                            title: {
+                                display: true,
+                                text: 'Trees height by district',
+                                font: {
+                                    size: 16
+                                }
+                            },
+                        },
+                        scales: {
+                            y: {
+                                beginAtZero: true,
+                                title: {
+                                    display: true,
+                                    text: 'Average Tree Height (meters)'
+                                }
+                            },
+                            x: {
+                                title: {
+                                    display: true,
+                                    text: 'Tree District'
+                                }
+                            }
+                        }
+                    }
+                });
+            });
+
+
+        // Fetch data 
+        fetch('/api/top-tree-species')
+            .then(response => response.json())
+            .then(data => {
+                const ctx = document.getElementById('topSpeciesChart').getContext('2d');
+
+                new Chart(ctx, {
+                    type: 'line',
+                    data: {
+                        labels: Object.keys(data.data),
+                        datasets: [{
+                            label: 'Number of Trees',
+                            data: Object.values(data.data),
+                            backgroundColor: 'rgba(75, 192, 192, 0.2)', 
+                            borderColor: 'rgba(75, 192, 192, 1)',
+                            borderWidth: 2,
+                            pointBackgroundColor: 'rgba(75, 192, 192, 1)', // Color of data points
+                            pointRadius: 4
+                        }]
+                    },
+                    options: {
+
+                        scales: {
+                            y: {
+                                beginAtZero: true,
+                                title: {
+                                    display: true,
+                                    text: 'Number of Trees'
+                                }
+                            }
+                        },
+                        plugins: {
+                            legend: {
+                                display: true,
+                                position: 'bottom'
+                            },
+                            title: {
+                                display: true,
+                                text: 'Trees by species',
+                                font: {
+                                    size: 16
+                                }
+                            }
+                        }
+                    }
+                });
+            });
+
+    </script>
+</body>
+
+</html>
