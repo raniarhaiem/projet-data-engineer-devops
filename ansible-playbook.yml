@@ -10,12 +10,6 @@
     - name: Cleanup
       command: rm -rf /home/host2/Dashboard
 
-    - name: Pull the Docker image from the repository
-      command: docker pull raniarhaiem/nodejs:1-0
-
-    - name: Pull the Docker image from the repository
-      command: docker pull raniarhaiem/nodejs:1-0
-
     - name: Copy docker compose to VM
       copy:
         src: /var/jenkins_home/workspace/Dashboard/docker-compose.yml
