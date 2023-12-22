@@ -18,6 +18,7 @@
   "homepage": "https://github.com/raniarhaiem/projet-data-engineer-devops#readme",
   "dependencies": {
     "axios": "^1.6.2",
+    "config": "^3.3.9",
     "express": "^4.18.2",
     "mysql2": "^3.6.5"
   }
