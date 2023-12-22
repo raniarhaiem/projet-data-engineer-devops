@@ -19,6 +19,11 @@ services:
     ports:
       - "3000:3000"
     command: /bin/sh -c "chmod +x ./wait-for-it.sh && ./wait-for-it.sh mysqldb:3306 -- node script.js"
-    
+    environment:
+      DB_HOST: mysqldb
+      DB_PORT: 3306
+      DB_USER: root
+      DB_PASSWORD: ""
+      DB_NAME: test
 volumes:
   mysqldata:

@@ -1,0 +1,24 @@
+{
+  "name": "projet-data-engineer-devops",
+  "version": "1.0.0",
+  "description": "",
+  "main": "script.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/raniarhaiem/projet-data-engineer-devops.git"
+  },
+  "author": "",
+  "license": "ISC",
+  "bugs": {
+    "url": "https://github.com/raniarhaiem/projet-data-engineer-devops/issues"
+  },
+  "homepage": "https://github.com/raniarhaiem/projet-data-engineer-devops#readme",
+  "dependencies": {
+    "axios": "^1.6.2",
+    "express": "^4.18.2",
+    "mysql2": "^3.6.5"
+  }
+}

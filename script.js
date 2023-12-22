@@ -6,18 +6,14 @@ const mysql = require('mysql2/promise');
 const express = require('express');
 // Creating an instance of the Express application
 const app = express();
-// Defining the port number on which the Express application will listen
-const port = 3000;
-
+// Defining the port number on which the Express application will listen Use the PORT environment variable if set, or default to 3000
+const port = process.env.PORT || 3000;
+//Imports a configuration object from a module named config.
+const config = require('./config');
 
 // MySQL Database Connection Configuration
-const dbConfig = {
-  host: 'mysqldb',      // Hostname
-  port: 3306,           // MySQL database port
-  user: 'root',         // Username
-  password: '',         // Password
-  database: 'test',     // Database name
-};
+const dbConfig = config.dbConfig;
+
 
 // Function to fetch data from the API
 async function fetchDataFromAPI() {
@@ -88,6 +84,7 @@ async function createTable() {
     await connection.end();
   }
 }
+
 // Run the function to create the table
 createTable();
 
@@ -139,8 +136,7 @@ async function insertDataIntoMySQL(data) {
       const formattedDate = arbres_dateplantation ? new Date(arbres_dateplantation).toISOString().slice(0, 19).replace('T', ' ') : null;
       await connection.execute(
         'INSERT INTO test_data (arbres_idbase, geom_lon, geom_lat, arbres_domanialite, arbres_arrondissement, arbres_complementadresse, arbres_numero, arbres_adresse, arbres_circonferenceencm, arbres_hauteurenm, arbres_stadedeveloppement, arbres_pepiniere, arbres_genre, arbres_espece, arbres_varieteoucultivar, arbres_dateplantation, arbres_libellefrancais, com_idbase, com_idarbre,com_site, com_adresse, com_complement_adresse, com_arrondissement, com_domanialite, com_nom_usuel, com_nom_latin, com_autorite_taxo, com_annee_plantation, com_qualification_rem, com_resume, com_descriptif, com_delib_num, com_delib_date, com_label_arbres, com_url_pdf, com_url_photo1, com_copyright1) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)',
-        [arbres_idbase, lon, lat, arbres_domanialite, arbres_arrondissement, arbres_complementadresse, arbres_numero, arbres_adresse, arbres_circonferenceencm, arbres_hauteurenm, arbres_stadedeveloppement, arbres_pepiniere, arbres_genre, arbres_espece, arbres_varieteoucultivar, formattedDate, arbres_libellefrancais, com_idbase, com_idarbre, com_site, com_adresse, com_complement_adresse, com_arrondissement, com_domanialite, com_nom_usuel, com_nom_latin, com_autorite_taxo, com_annee_plantation, com_qualification_rem, com_resume, com_descriptif, com_delib_num, com_delib_date, com_label_arbres, com_url_pdf, com_url_photo1, com_copyright1
-        ]
+        [arbres_idbase, lon, lat, arbres_domanialite, arbres_arrondissement, arbres_complementadresse, arbres_numero, arbres_adresse, arbres_circonferenceencm, arbres_hauteurenm, arbres_stadedeveloppement, arbres_pepiniere, arbres_genre, arbres_espece, arbres_varieteoucultivar, formattedDate, arbres_libellefrancais, com_idbase, com_idarbre, com_site, com_adresse, com_complement_adresse, com_arrondissement, com_domanialite, com_nom_usuel, com_nom_latin, com_autorite_taxo, com_annee_plantation, com_qualification_rem, com_resume, com_descriptif, com_delib_num, com_delib_date, com_label_arbres, com_url_pdf, com_url_photo1, com_copyright1]
       );
     }
     console.log('Data inserted into MySQL.');
@@ -165,7 +161,8 @@ async function main() {
 
 // ******************************Algorithms******************************//
 
-// Define an API endpoint to get chart data: trees-by-genre
+// Define an API endpoint to get chart data: trees-by-genre 
+// counts tree data by genre 
 app.get('/api/trees-by-genre', async (req, res) => {
   try {
     const connection = await mysql.createConnection(dbConfig);
@@ -181,6 +178,7 @@ app.get('/api/trees-by-genre', async (req, res) => {
 });
 
 // Define an API endpoint to get chart data: trees-by-arrondissement
+// counts tree data by arrondissement
 app.get('/api/trees-by-arrondissement', async (req, res) => {
   try {
     const connection = await mysql.createConnection(dbConfig);
@@ -195,6 +193,7 @@ app.get('/api/trees-by-arrondissement', async (req, res) => {
 });
 
 // Define an API endpoint to get chart data: average-tree-height-by-district
+// calculates the average height of trees in each arrondissement 
 app.get('/api/average-tree-height-by-district', async (req, res) => {
   try {
     const connection = await mysql.createConnection(dbConfig);
@@ -208,12 +207,10 @@ app.get('/api/average-tree-height-by-district', async (req, res) => {
       GROUP BY arbres_arrondissement
     `);
     await connection.end();
-
     const data = rows.map(row => ({
       treeDistrict: row.treeDistrict,
       averageTreeHeight: row.averageTreeHeight,
     }));
-
     res.json({ data });
   } catch (error) {
     res.status(500).json({ error: error.message });
@@ -222,6 +219,7 @@ app.get('/api/average-tree-height-by-district', async (req, res) => {
 
 
 // Define an API endpoint to get chart data: top-tree-species
+// counts how many tree in each species 
 app.get('/api/top-tree-species', async (req, res) => {
   try {
     const connection = await mysql.createConnection(dbConfig);
@@ -233,7 +231,6 @@ app.get('/api/top-tree-species', async (req, res) => {
       WHERE arbres_espece IS NOT NULL
       GROUP BY treeSpecies
       ORDER BY treeCount DESC
-   
     `);
     await connection.end();
     const data = {};
@@ -246,8 +243,6 @@ app.get('/api/top-tree-species', async (req, res) => {
   }
 });
 
-main();
-
 // Define a default route for the root url
 app.get('/', (req, res) => {
   res.sendFile(__dirname + '/chart.html');
@@ -256,3 +251,5 @@ app.get('/', (req, res) => {
 app.listen(port, () => {
   console.log(`Server is running at http://localhost:${port}`);
 });
+
+main();
