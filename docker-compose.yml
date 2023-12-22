@@ -18,7 +18,7 @@ services:
       - mysqldb
     ports:
       - "3000:3000"
-    command: ["./wait-for-it.sh", "mysqldb:3306", "--", "node", "script.js"]
-
+    command: /bin/sh -c "chmod +x ./wait-for-it.sh && ./wait-for-it.sh mysqldb:3306 -- node script.js"
+    
 volumes:
   mysqldata:

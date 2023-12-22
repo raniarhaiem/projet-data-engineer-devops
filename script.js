@@ -1,17 +1,22 @@
+// Importing the Axios library for making HTTP requests
 const axios = require('axios');
+// Importing the mysql2/promise library to interact with MySQL asynchronously
 const mysql = require('mysql2/promise');
+// Importing the Express framework for creating web applications with Node.js
 const express = require('express');
+// Creating an instance of the Express application
 const app = express();
+// Defining the port number on which the Express application will listen
 const port = 3000;
 
 
 // MySQL Database Connection Configuration
 const dbConfig = {
-  host: 'mysqldb',
-  port: 3306,
-  user: 'root',
-  password: '',
-  database: 'test',
+  host: 'mysqldb',      // Hostname
+  port: 3306,           // MySQL database port
+  user: 'root',         // Username
+  password: '',         // Password
+  database: 'test',     // Database name
 };
 
 // Function to fetch data from the API
@@ -24,8 +29,8 @@ async function fetchDataFromAPI() {
   }
 }
 
-
 async function createTable() {
+  // Establish a connection to the MySQL database using the provided configuration
   const connection = await mysql.createConnection(dbConfig);
   try {
     // Define the table creation query
@@ -73,18 +78,16 @@ async function createTable() {
         PRIMARY KEY (id)
       );
     `;
-
     // Execute the table creation query
     await connection.query(tableQuery);
-
     console.log('Table test_data created successfully.');
   } catch (error) {
     console.error(`Error creating table: ${error.message}`);
   } finally {
+    // Close the database connection
     await connection.end();
   }
 }
-
 // Run the function to create the table
 createTable();
 
@@ -147,6 +150,7 @@ async function insertDataIntoMySQL(data) {
     await connection.end();
   }
 }
+
 // Main function 
 async function main() {
   try {
@@ -159,19 +163,18 @@ async function main() {
 }
 
 
-// ****algorithms
+// ******************************Algorithms******************************//
+
 // Define an API endpoint to get chart data: trees-by-genre
 app.get('/api/trees-by-genre', async (req, res) => {
   try {
     const connection = await mysql.createConnection(dbConfig);
     const [rows] = await connection.execute('SELECT arbres_genre, COUNT(*) as count FROM test_data GROUP BY arbres_genre');
     await connection.end();
-
-    const labels = rows.map(row => row.arbres_genre);
-    const data = rows.map(row => row.count);
-
+    const genre = rows.map(row => row.arbres_genre);
+    const treeCounts = rows.map(row => row.count);
     // Send the chart data as JSON
-    res.json({ labels, data });
+    res.json({ genre, treeCounts });
   } catch (error) {
     res.status(500).json({ error: error.message });
   }
@@ -183,10 +186,8 @@ app.get('/api/trees-by-arrondissement', async (req, res) => {
     const connection = await mysql.createConnection(dbConfig);
     const [rows] = await connection.execute('SELECT arbres_arrondissement, COUNT(*) as count FROM test_data GROUP BY arbres_arrondissement');
     await connection.end();
-
     const arrondissements = rows.map(row => row.arbres_arrondissement);
     const treeCounts = rows.map(row => row.count);
-
     res.json({ arrondissements, treeCounts });
   } catch (error) {
     res.status(500).json({ error: error.message });

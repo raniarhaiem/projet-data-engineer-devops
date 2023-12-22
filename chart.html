@@ -10,6 +10,7 @@
 
 <body>
     <div style="display: flex; flex-wrap: wrap; justify-content: space-around;">
+        
         <!-- Chart 1: Tree Genre -->
         <div style="width: 45%; margin: 10px;">
             <canvas id="treeChart" width="200" height="200"></canvas>
@@ -32,14 +33,15 @@
     </div>
 
     <script>
+        
         // Fetch data for tree genre
         fetch('/api/trees-by-genre')
             .then(response => response.json())
             .then(data => {
                 const ctx = document.getElementById('treeChart').getContext('2d');
-
+                
                 // Get the number of species
-                const numberOfSpecies = data.labels.length;
+                const numberOfSpecies = data.genre.length;
 
                 // Generate  colors for each species
                 const uniqueColors = [
@@ -51,9 +53,9 @@
                 new Chart(ctx, {
                     type: 'doughnut',
                     data: {
-                        labels: data.labels,
+                        labels: data.genre,
                         datasets: [{
-                            data: data.data,
+                            data: data.treeCounts,
                             backgroundColor: uniqueColors,
                             hoverOffset: 4,
                         }]
@@ -73,8 +75,8 @@
                             tooltip: {
                                 callbacks: {
                                     label: (context) => {
-                                        const label = data.labels[context.dataIndex];
-                                        const value = data.data[context.dataIndex];
+                                        const label = data.genre[context.dataIndex];
+                                        const value = data.treeCounts[context.dataIndex];
                                         return `${label}: ${value} trees`;
                                     },
                                 },
