@@ -16,4 +16,4 @@
         dest: /home/host2/Dashboard
 
     - name: Execute Docker Compose
-      command: chdir=/home/host2/Dashboard/Dashboard docker-compose up -d
+      command: chdir=/home/host2/Dashboard/Dashboard docker-compose up -d --build
