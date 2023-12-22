@@ -1,0 +1,19 @@
+---
+- name: Deploy Dashboard
+  hosts: vm
+  become: yes
+
+  tasks:
+    - name: Docker compose down 
+      command: chdir=/home/host2/Dashboard/Dashboard docker-compose down -v
+
+    - name: Cleanup 
+      command: rm -rf /home/host2/Dashboard
+
+    - name: Copy Docker Compose files
+      copy:
+        src: /var/jenkins_home/workspace/Dashboard
+        dest: /home/host2/Dashboard
+
+    - name: Execute Docker Compose
+      command: chdir=/home/host2/Dashboard/Dashboard docker-compose up -d
