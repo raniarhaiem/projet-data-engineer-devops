@@ -10,10 +10,15 @@
     - name: Cleanup 
       command: rm -rf /home/host2/Dashboard
 
-    - name: Copy Docker Compose files
-      copy:
-        src: /var/jenkins_home/workspace/Dashboard
-        dest: /home/host2/Dashboard
+    - name: Pull the Docker image from the repository
+      command: docker pull raniarhaiem/nodejs:1-0  
+    
+    - name: Pull the Docker image from the repository
+      command: docker pull raniarhaiem/nodejs:1-0  
+
+    - name: Copy docker compose to VM
+        src: /var/jenkins_home/workspace/Dashboard/docker-compose.yml
+        dest: /home/host2/Dashboard/
 
     - name: Execute Docker Compose
       command: chdir=/home/host2/Dashboard/Dashboard docker-compose up -d --build
