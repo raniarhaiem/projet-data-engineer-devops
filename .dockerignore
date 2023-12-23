@@ -1,0 +1,11 @@
+# .dockerignore
+
+# Exclude these files and directories
+node_modules
+.git
+.dockerignore
+.gitignore
+ansible-playbook.yml
+docker-compose.yml
+inventory-file.ini
+README.md
