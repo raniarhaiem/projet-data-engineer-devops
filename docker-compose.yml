@@ -13,7 +13,7 @@ services:
       - mysqldata:/var/lib/mysql
 
   nodejs:
-    image: raniarhaiem/nodejs:2
+    image: raniarhaiem/nodejs:latest
     depends_on:
       - mysqldb
     ports:
