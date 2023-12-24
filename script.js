@@ -4,15 +4,26 @@ const axios = require('axios');
 const mysql = require('mysql2/promise');
 // Importing the Express framework for creating web applications with Node.js
 const express = require('express');
+// Importing middleware for Express.js applications to generating Prometheus metrics
+const promBundle = require('express-prom-bundle');
+
 // Creating an instance of the Express application
 const app = express();
+// Creating a middleware instance 
+const metricsMiddleware = promBundle({ includeMethod: true });
+
 // Defining the port number on which the Express application will listen Use the PORT environment variable if set, or default to 3000
 const port = process.env.PORT || 3000;
+
 //Imports a configuration object from a module named config.
 const config = require('./config');
 
 // MySQL Database Connection Configuration
 const dbConfig = config.dbConfig;
+
+
+//integrates the middleware into your Express.js application
+app.use(metricsMiddleware);
 
 
 // Function to fetch data from the API
@@ -146,6 +157,9 @@ async function insertDataIntoMySQL(data) {
     await connection.end();
   }
 }
+
+
+
 
 // Main function 
 async function main() {
