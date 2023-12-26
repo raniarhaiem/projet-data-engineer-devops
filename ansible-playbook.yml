@@ -15,5 +15,11 @@
         src: /var/jenkins_home/workspace/Dashboard/docker-compose.yml
         dest: /home/host2/Dashboard/
 
+    - name: Copy config file to VM
+      copy:
+        src: /var/jenkins_home/workspace/Dashboard/my.cnf.yml
+        dest: /home/host2/Dashboard/
+
+
     - name: Execute Docker Compose
       command: chdir=/home/host2/Dashboard docker-compose up -d 
