@@ -14,12 +14,10 @@ services:
 
   mysqld-exporter:
     image: prom/mysqld-exporter
-    environment:
-    - DATA_SOURCE_NAME=exporter@exporterpassword/etc/.my.cnf
     ports:
       - "9104:9104"
     volumes:
-      - ./.my.cnf:/etc/.my.cnf
+      - ./my.cnf:/etc/.my.cnf
     command: ["--config.my-cnf", "/etc/.my.cnf"] 
 
   nodejs:
