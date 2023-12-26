@@ -17,7 +17,7 @@
 
     - name: Copy config file to VM
       copy:
-        src: /var/jenkins_home/workspace/Dashboard/my.cnf.yml
+        src: /var/jenkins_home/workspace/Dashboard/my.cnf
         dest: /home/host2/Dashboard/
 
 
