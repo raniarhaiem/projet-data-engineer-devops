@@ -17,17 +17,14 @@ const port = process.env.PORT || 3000;
 
 //Imports a configuration object from a module named config.
 const config = require('./config');
-
 // MySQL Database Connection Configuration
 const dbConfig = config.dbConfig;
-
+// MySQL Database Connection Pool Configuration
+const pool = mysql.createPool(dbConfig);
 
 //integrates the middleware into your Express.js application
 app.use(metricsMiddleware);
 
-
-// MySQL Database Connection Pool Configuration
-const pool = mysql.createPool(dbConfig);
 
 async function createTable() {
   // Establish a connection to the MySQL database using the provided configuration
@@ -88,7 +85,6 @@ async function createTable() {
     connection.release();
   }
 }
-
 
 async function fetchData(url) {
   try {
@@ -186,7 +182,6 @@ async function insertDataIntoMySQL(data) {
     connection.release();
   }
 }
-
 
 // Main function 
 async function main() {
