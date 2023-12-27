@@ -26,19 +26,12 @@ const dbConfig = config.dbConfig;
 app.use(metricsMiddleware);
 
 
-// Function to fetch data from the API
-async function fetchDataFromAPI() {
-  try {
-    const response = await axios.get('https://opendata.paris.fr/api/explore/v2.1/catalog/datasets/arbresremarquablesparis/records/?limit=20');
-    return response.data;
-  } catch (error) {
-    throw new Error(`Error fetching data from API: ${error.message}`);
-  }
-}
+// MySQL Database Connection Pool Configuration
+const pool = mysql.createPool(dbConfig);
 
 async function createTable() {
   // Establish a connection to the MySQL database using the provided configuration
-  const connection = await mysql.createConnection(dbConfig);
+  const connection = await pool.getConnection();
   try {
     // Define the table creation query
     const tableQuery = `
@@ -92,19 +85,55 @@ async function createTable() {
     console.error(`Error creating table: ${error.message}`);
   } finally {
     // Close the database connection
-    await connection.end();
+    connection.release();
   }
 }
 
-// Run the function to create the table
-createTable();
+
+async function fetchData(url) {
+  try {
+    // Make an HTTP GET request using axios to retrieve data from the URL
+    const response = await axios.get(url);
+    // Check if the response status is not 200 it means there is a problem 
+    if (response.status !== 200) {
+      throw new Error(`Failed to fetch data: ${response.status} ${response.statusText}`);
+    }
+    // Extract the data from the response
+    const data = response.data;
+    // Extract the total_count of the data from the response
+    const totalCount = data.total_count;
+    // Define the block size for fetching data ( in other case its in pages in this case the data is in blocks)
+    const blockSize = 100; // this is based on the API's block size
+    // Make multiple requests to fetch all data
+    const allData = [];
+    for (let start = 0; start < totalCount; start += blockSize) {
+      // Make an HTTP GET request with parameters to specify the starting point and block size
+      const response = await axios.get(url, {
+        params: {
+          rows: blockSize,
+          start: start,
+        },
+      });
+      // Check if the response status is not 200 it means there is a problem 
+      if (response.status !== 200) {
+        throw new Error(`Failed to fetch data: ${response.status} ${response.statusText}`);
+      }
+      // Concatenate the results of each request to the allData array
+      allData.push(...response.data.results);
+    }
+    return allData;
+  } catch (error) {
+    console.error('Error:', error);
+    throw error;
+  }
+}
 
 // Function to insert data into MySQL
 async function insertDataIntoMySQL(data) {
-  const connection = await mysql.createConnection(dbConfig);
+  const connection = await pool.getConnection();
   try {
     // Insert data into the MySQL database
-    for (const result of data.results) {
+    for (const result of data) {
       const {
         arbres_idbase,
         geom_x_y: { lon, lat },
@@ -154,23 +183,30 @@ async function insertDataIntoMySQL(data) {
   } catch (error) {
     throw new Error(`Error inserting data into MySQL: ${error.message}`);
   } finally {
-    await connection.end();
+    connection.release();
   }
 }
-
-
 
 
 // Main function 
 async function main() {
   try {
-    const apiData = await fetchDataFromAPI();
-    await insertDataIntoMySQL(apiData);
+    await createTable();
+    const apiUrl = 'https://opendata.paris.fr/api/explore/v2.1/catalog/datasets/arbresremarquablesparis/records/';
+    fetchData(apiUrl)
+      .then(data => {
+        insertDataIntoMySQL(data);
+      })
+      .catch(error => {
+        console.error('Error:', error);
+      });
     console.log('Process completed.');
   } catch (error) {
     console.error(error.message);
   }
 }
+
+
 
 
 // ******************************Algorithms******************************//
@@ -179,13 +215,19 @@ async function main() {
 // counts tree data by genre 
 app.get('/api/trees-by-genre', async (req, res) => {
   try {
-    const connection = await mysql.createConnection(dbConfig);
+    const connection = await pool.getConnection();
     const [rows] = await connection.execute('SELECT arbres_genre, COUNT(*) as count FROM test_data GROUP BY arbres_genre');
-    await connection.end();
-    const genre = rows.map(row => row.arbres_genre);
-    const treeCounts = rows.map(row => row.count);
+    connection.release();
+    //  const genre = rows.map(row => row.arbres_genre);
+    //  const treeCounts = rows.map(row => row.count);
+    // Process the fetched data
+    const treesByGenre = rows.map(row => ({
+      genre: row.arbres_genre,
+      count: row.count
+    }));
+
     // Send the chart data as JSON
-    res.json({ genre, treeCounts });
+    res.json({ treesByGenre });
   } catch (error) {
     res.status(500).json({ error: error.message });
   }
@@ -195,12 +237,17 @@ app.get('/api/trees-by-genre', async (req, res) => {
 // counts tree data by arrondissement
 app.get('/api/trees-by-arrondissement', async (req, res) => {
   try {
-    const connection = await mysql.createConnection(dbConfig);
+    const connection = await pool.getConnection();
     const [rows] = await connection.execute('SELECT arbres_arrondissement, COUNT(*) as count FROM test_data GROUP BY arbres_arrondissement');
-    await connection.end();
-    const arrondissements = rows.map(row => row.arbres_arrondissement);
-    const treeCounts = rows.map(row => row.count);
-    res.json({ arrondissements, treeCounts });
+    connection.release();
+    //const arrondissements = rows.map(row => row.arbres_arrondissement);
+    //const treeCounts = rows.map(row => row.count);
+    const treesByArrondissement = rows.map(row => ({
+      arrondissements: row.arbres_arrondissement,
+      count: row.count
+    }));
+
+    res.json({ treesByArrondissement });
   } catch (error) {
     res.status(500).json({ error: error.message });
   }
@@ -210,7 +257,7 @@ app.get('/api/trees-by-arrondissement', async (req, res) => {
 // calculates the average height of trees in each arrondissement 
 app.get('/api/average-tree-height-by-district', async (req, res) => {
   try {
-    const connection = await mysql.createConnection(dbConfig);
+    const connection = await pool.getConnection();
     const [rows] = await connection.execute(`
       SELECT
         arbres_arrondissement as treeDistrict,
@@ -220,11 +267,13 @@ app.get('/api/average-tree-height-by-district', async (req, res) => {
         AND arbres_hauteurenm IS NOT NULL
       GROUP BY arbres_arrondissement
     `);
-    await connection.end();
+    connection.release();
+
     const data = rows.map(row => ({
       treeDistrict: row.treeDistrict,
       averageTreeHeight: row.averageTreeHeight,
     }));
+
     res.json({ data });
   } catch (error) {
     res.status(500).json({ error: error.message });
@@ -236,7 +285,7 @@ app.get('/api/average-tree-height-by-district', async (req, res) => {
 // counts how many tree in each species 
 app.get('/api/top-tree-species', async (req, res) => {
   try {
-    const connection = await mysql.createConnection(dbConfig);
+    const connection = await pool.getConnection();
     const [rows] = await connection.execute(`
       SELECT
         arbres_espece as treeSpecies,
@@ -246,7 +295,7 @@ app.get('/api/top-tree-species', async (req, res) => {
       GROUP BY treeSpecies
       ORDER BY treeCount DESC
     `);
-    await connection.end();
+    connection.release();
     const data = {};
     rows.forEach(row => {
       data[row.treeSpecies] = row.treeCount;
