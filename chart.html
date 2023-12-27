@@ -35,6 +35,21 @@
 
     <script>
 
+
+        // Function to generate distinct solid colors
+        function generateDistinctSolidColors(numColors) {
+            const colors = [];
+            const step = 360 / numColors;
+
+            for (let i = 0; i < numColors; i++) {
+                const hue = (i * step) % 360;
+                const color = `hsl(${hue}, 70%, 50%)`;
+                colors.push(color);
+            }
+
+            return colors;
+        }
+
         // Fetch data for tree genre
         fetch('/api/trees-by-genre')
             .then(response => response.json())
@@ -44,12 +59,8 @@
                 // Get the number of genres
                 const numberOfGenres = data.treesByGenre.length;
 
-                // Generate colors for each genre
-                const uniqueColors = [
-                    'rgba(255, 99, 132, 0.8)',
-                    'rgba(54, 162, 235, 0.8)',
-                    'rgba(255, 205, 86, 0.8)',
-                ].slice(0, numberOfGenres);
+                // Generate distinct solid colors
+                const distinctSolidColors = generateDistinctSolidColors(numberOfGenres);
 
                 new Chart(ctx, {
                     type: 'doughnut',
@@ -57,7 +68,7 @@
                         labels: data.treesByGenre.map(tree => tree.genre),
                         datasets: [{
                             data: data.treesByGenre.map(tree => tree.count),
-                            backgroundColor: uniqueColors,
+                            backgroundColor: distinctSolidColors,
                             hoverOffset: 4,
                         }]
                     },
